@@ -45,10 +45,21 @@ The sheet acts as the single source of truth. The app reads and writes to it via
 | `tags` | String | Comma-separated list (e.g. `productivity, saas, ai`). Used for filtering and displayed as pills on cards. |
 | `can be saas` | String | `yes` / `no` / empty. Filterable. Displayed as a green badge when `yes`. |
 
+### Configuration (Environment Variables)
+
+All configuration is provided via Vite environment variables, baked into the bundle at build time. For GitHub Pages deployments, these are set as **repository secrets** and injected during the GitHub Actions build.
+
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_GOOGLE_API_KEY` | Yes | Google Sheets API key |
+| `VITE_GOOGLE_SHEET_ID` | Yes | Spreadsheet ID from the sheet URL |
+| `VITE_SHEET_TAB_NAME` | No | Tab name (defaults to `Sheet1`) |
+| `VITE_APPS_SCRIPT_URL` | No | Apps Script deployment URL (enables write-back) |
+
+For local development, create a `.env` file in the project root (git-ignored).
+
 ### Local State
 
-- **Settings**: Google API Key, Sheet ID, Sheet tab name, Apps Script URL, Claude API Key. Persisted in browser storage.
-- **Chat history**: Per-idea conversation history with Claude. Persisted in browser storage (v2).
 - **Filter state**: Active filters (priority, tag, SaaS, search query). Session-only, not persisted.
 
 ---
@@ -103,21 +114,21 @@ The sheet acts as the single source of truth. The app reads and writes to it via
 
 ### V1 — Kanban MVP
 
-#### 1. Settings Panel
+#### 1. Instructions Modal
 
-- Modal overlay triggered by ⚙ button in header.
-- Input fields (password-masked for sensitive values):
-  - Google Sheet ID
-  - Sheet tab name (default: `Sheet1`)
-  - Google API Key
-  - Apps Script URL (optional, enables write-back)
-  - Claude API Key
-- "Save & Load Sheet" button persists settings and triggers data fetch.
-- Includes collapsible code block with the Apps Script source for easy setup.
+- Displayed automatically on load when required environment variables (`VITE_GOOGLE_API_KEY`, `VITE_GOOGLE_SHEET_ID`) are missing.
+- Explains that the app requires configuration via environment variables.
+- Shows setup steps:
+  1. How to add repository secrets in GitHub (Settings → Secrets and variables → Actions).
+  2. Which variables to set (`VITE_GOOGLE_API_KEY`, `VITE_GOOGLE_SHEET_ID`, `VITE_SHEET_TAB_NAME`, `VITE_APPS_SCRIPT_URL`).
+  3. How to create a `.env` file for local development.
+- Includes collapsible code block with the Apps Script source for easy write-back setup.
+- **"Verify Configuration" button**: reloads the page (`window.location.reload()`) so the app re-reads the baked-in env vars after a new deployment.
+- Can also be opened manually via a ⓘ button in the header (for reference even when keys are present).
 
 #### 2. Google Sheets Integration — Read
 
-- Fetches sheet data via: `GET https://sheets.googleapis.com/v4/spreadsheets/{id}/values/{range}?key={apiKey}`
+- Fetches sheet data via: `GET https://sheets.googleapis.com/v4/spreadsheets/{VITE_GOOGLE_SHEET_ID}/values/{VITE_SHEET_TAB_NAME}?key={VITE_GOOGLE_API_KEY}`
 - Parses first row as headers (case-insensitive matching).
 - Maps each subsequent row to a card object with computed fields:
   - `_tags`: parsed array from comma-separated string
@@ -125,7 +136,7 @@ The sheet acts as the single source of truth. The app reads and writes to it via
   - `_id`: stable identifier based on row index
   - `_row`: 1-indexed row number for write-back targeting
 - Refresh button re-fetches without clearing local state.
-- Error state shows message + suggestion to check settings.
+- Error state shows message + suggestion to check environment variable configuration.
 
 #### 3. Google Sheets Integration — Write
 
@@ -344,18 +355,35 @@ function doGet(e) {
 4. Execute as: **Me**. Who has access: **Anyone**.
 5. Copy the deployment URL.
 
-### 4. Claude API Key
+### 4. Configure Environment Variables
 
-1. Go to [Anthropic Console](https://console.anthropic.com/).
-2. Create an API key.
-3. Note: API calls are billed per token. Sonnet is significantly cheaper than Opus.
+#### For GitHub Pages (production)
+
+1. In your GitHub repository: **Settings → Secrets and variables → Actions**.
+2. Add the following **repository secrets**:
+   - `VITE_GOOGLE_API_KEY` — your Google API key
+   - `VITE_GOOGLE_SHEET_ID` — your spreadsheet ID
+   - `VITE_SHEET_TAB_NAME` — tab name (optional, defaults to `Sheet1`)
+   - `VITE_APPS_SCRIPT_URL` — your Apps Script deployment URL (optional, enables drag-and-drop write-back)
+3. The GitHub Actions workflow injects these as environment variables during the Vite build step.
+4. Push to `main` to trigger a new deployment with the secrets baked in.
+
+#### For local development
+
+1. Create a `.env` file in the project root (already git-ignored):
+   ```
+   VITE_GOOGLE_API_KEY=your_api_key_here
+   VITE_GOOGLE_SHEET_ID=your_sheet_id_here
+   VITE_SHEET_TAB_NAME=Sheet1
+   VITE_APPS_SCRIPT_URL=https://script.google.com/macros/s/.../exec
+   ```
+2. Run `npm run dev` — Vite reads `.env` automatically.
 
 ### 5. Deploy to GitHub Pages
 
-1. Create a Vite + React project: `npm create vite@latest idea-board -- --template react`.
-2. Add the component code.
-3. Configure `vite.config.js` with `base: '/idea-board/'`.
-4. Add GitHub Actions workflow for automatic deploy on push.
+1. Configure `vite.config.ts` with `base: '/sheet-to-kanban/'`.
+2. Add GitHub Actions workflow for automatic deploy on push (see `.github/workflows/deploy.yml`).
+3. Ensure repository secrets are set (step 4 above) before deploying.
 
 ---
 
@@ -366,7 +394,7 @@ function doGet(e) {
 | Status column hardcoded to column C | Simplicity for v1 | Make configurable in settings (future) |
 | Apps Script write is fire-and-forget | `no-cors` mode doesn't return response body | Optimistic UI update; user can refresh to verify |
 | No offline support | Depends on Google Sheets API | Could add service worker + cache (future) |
-| API keys in browser storage | No backend to proxy | Acceptable for single-user personal tool |
+| API keys baked into JS bundle | No backend to proxy | Acceptable for single-user personal tool; repo should be private |
 | No real-time sync | Sheets API is pull-based | Manual refresh button; could add polling (future) |
 | Chat history resets on page reload | Not persisted in v1 | Add storage persistence in v2 |
 
@@ -392,33 +420,32 @@ Items considered but explicitly deferred:
 ## File Structure (Vite project)
 
 ```
-idea-board/
+sheet-to-kanban/
 ├── index.html
-├── vite.config.js
+├── vite.config.ts
 ├── package.json
+├── .env                     # Local dev config (git-ignored)
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml
 ├── public/
 │   └── favicon.svg
 └── src/
-    ├── main.jsx
-    ├── App.jsx              # Main app component
+    ├── main.tsx
+    ├── App.tsx               # Main app component
+    ├── App.scss
+    ├── index.scss            # Global styles + Tailwind
     ├── components/
-    │   ├── SettingsPanel.jsx
-    │   ├── FilterBar.jsx
-    │   ├── KanbanBoard.jsx
-    │   ├── KanbanColumn.jsx
-    │   ├── KanbanCard.jsx
-    │   ├── ChatPanel.jsx
-    │   └── PromptBuilder.jsx
+    │   ├── InstructionsModal.tsx
+    │   ├── FilterBar.tsx
+    │   ├── KanbanBoard.tsx
+    │   ├── KanbanColumn.tsx
+    │   └── KanbanCard.tsx
     ├── hooks/
-    │   ├── useSheets.js     # Google Sheets read/write
-    │   ├── useStorage.js    # localStorage wrapper
-    │   └── useClaude.js     # Claude API calls
-    ├── utils/
-    │   ├── parseSheet.js    # Sheet data → card objects
-    │   └── constants.js     # Models, colors, questions
-    └── styles/
-        └── index.css        # Global styles, scrollbar, fonts
+    │   └── useSheets.ts      # Google Sheets read/write
+    ├── types/
+    │   └── index.ts          # Shared TypeScript interfaces
+    └── utils/
+        ├── parseSheet.ts     # Sheet data → card objects
+        └── constants.ts      # Colors, column defaults
 ```
