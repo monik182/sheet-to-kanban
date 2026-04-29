@@ -1,10 +1,37 @@
 @use "tailwindcss";
 
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --background: #f7f5f2;
+  --foreground: #2d2d2d;
+  --card: #ffffff;
+  --card-foreground: #2d2d2d;
+  --popover: #ffffff;
+  --popover-foreground: #2d2d2d;
+  --primary: #ffb3ba;
+  --primary-foreground: #2d2d2d;
+  --secondary: #ffdfba;
+  --secondary-foreground: #2d2d2d;
+  --muted: #ffffba;
+  --muted-foreground: #6b6b6b;
+  --accent: #baffc9;
+  --accent-foreground: #2d2d2d;
+  --destructive: #ff6b6b;
+  --destructive-foreground: #ffffff;
+  --border: #2d2d2d;
+  --input: #e5e5e5;
+  --ring: #bae1ff;
+  --success: #baffc9;
+  --success-foreground: #2d2d2d;
+  --warning: #ffffba;
+  --warning-foreground: #2d2d2d;
+  --link: #7ba3cc;
+
+  font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: light dark;
+  color-scheme: light;
+  color: var(--foreground);
+  background-color: var(--background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -19,4 +46,12 @@ body {
 #root {
   max-width: 100%;
   margin: 0 auto;
+}
+
+.font-pixel {
+  font-family: "Press Start 2P", system-ui, sans-serif;
+}
+
+.font-body {
+  font-family: "DM Sans", system-ui, sans-serif;
 }
