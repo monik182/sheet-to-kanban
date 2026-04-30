@@ -12,7 +12,6 @@ const APP_TOKEN = process.env.APP_TOKEN ?? "";
 const ALLOWED_ORIGINS = [
   "https://kanban.monicarvajal.com",
   "http://localhost:5173",
-  "http://localhost:4173",
 ];
 
 // --- CORS ---
