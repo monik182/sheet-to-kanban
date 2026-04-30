@@ -17,6 +17,7 @@
     "google-spreadsheet": "^5.2.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "typescript": "^5.8.3"
   }
 }

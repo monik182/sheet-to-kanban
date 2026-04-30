@@ -1,4 +1,5 @@
-import { http, type HttpFunction } from "@google-cloud/functions-framework";
+import { http } from "@google-cloud/functions-framework";
+import type { Request, Response } from "@google-cloud/functions-framework";
 import { GoogleSpreadsheet } from "google-spreadsheet";
 import { GoogleAuth } from "google-auth-library";
 
@@ -81,15 +82,14 @@ http("getSheet", async (req: Request, res: Response) => {
     }
 
     await sheet.loadHeaderRow();
-    const headers = sheet.headerValues.map((h) => h.toLowerCase().trim());
+    const originalHeaders = sheet.headerValues;
+    const headers = originalHeaders.map((h) => h.toLowerCase().trim());
     const rows = await sheet.getRows();
 
     const result = rows.map((row, index) => {
-      const obj: Record<string, string | number> = {
-        _row: index + 2,
-      };
-      for (const header of headers) {
-        obj[header] = row.get(header) ?? "";
+      const obj: Record<string, string | number> = { _row: index + 2 };
+      for (let i = 0; i < originalHeaders.length; i++) {
+        obj[headers[i]] = row.get(originalHeaders[i]) ?? "";
       }
       return obj;
     });
