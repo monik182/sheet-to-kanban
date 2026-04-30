@@ -20,5 +20,4 @@ export interface FilterState {
 
 export interface EnvConfig {
   apiUrl: string
-  apiToken: string
 }

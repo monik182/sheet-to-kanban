@@ -55,17 +55,16 @@ export function InstructionsModal({ onClose, dismissable }: InstructionsModalPro
               <p className="font-medium mb-1">For GitHub Pages (production):</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Go to your repo: <strong>Settings &rarr; Secrets and variables &rarr; Actions</strong></li>
-                <li>Add these repository secrets:</li>
+                <li>Add this repository variable:</li>
               </ul>
               <div className="mt-2 bg-[var(--muted)] border-2 border-[var(--foreground)] p-3 font-mono text-xs">
                 <div>VITE_API_URL=<span className="text-[var(--muted-foreground)]">https://region-project.cloudfunctions.net</span></div>
-                <div>VITE_API_TOKEN=<span className="text-[var(--muted-foreground)]">your_secret_token</span></div>
               </div>
             </div>
 
             <div className="mt-3">
               <p className="font-medium mb-1">For local development:</p>
-              <p>Create a <code className="text-xs bg-[var(--muted)] px-1 font-pixel text-[8px]">.env</code> file in the project root with the same variables above.</p>
+              <p>Create a <code className="text-xs bg-[var(--muted)] px-1 font-pixel text-[8px]">.env</code> file in the project root with <code className="text-xs bg-[var(--muted)] px-1 font-pixel text-[8px]">VITE_API_URL</code>. The API token is entered at login.</p>
             </div>
           </section>
         </div>

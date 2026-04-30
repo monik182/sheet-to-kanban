@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef } from 'react'
-import type { SheetCard, EnvConfig } from '../types'
+import type { SheetCard } from '../types'
 import { parseSheetData } from '../utils/parseSheet'
 
-export function useSheets(config: EnvConfig) {
+export function useSheets(apiUrl: string, apiToken: string, onUnauthorized: () => void) {
   const [cards, setCards] = useState<SheetCard[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -12,7 +12,7 @@ export function useSheets(config: EnvConfig) {
   const originalCards = useRef<SheetCard[]>([])
 
   const fetchCards = useCallback(async () => {
-    if (!config.apiUrl || !config.apiToken) return
+    if (!apiUrl || !apiToken) return
 
     setLoading(true)
     setError(null)
@@ -20,9 +20,14 @@ export function useSheets(config: EnvConfig) {
     setHasPendingChanges(false)
 
     try {
-      const res = await fetch(`${config.apiUrl}/getSheet`, {
-        headers: { 'Authorization': `Bearer ${config.apiToken}` },
+      const res = await fetch(`${apiUrl}/getSheet`, {
+        headers: { 'Authorization': `Bearer ${apiToken}` },
       })
+
+      if (res.status === 401) {
+        onUnauthorized()
+        return
+      }
 
       if (!res.ok) {
         const body = await res.json().catch(() => null)
@@ -38,7 +43,7 @@ export function useSheets(config: EnvConfig) {
     } finally {
       setLoading(false)
     }
-  }, [config.apiUrl, config.apiToken])
+  }, [apiUrl, apiToken, onUnauthorized])
 
   const updateCardStatus = useCallback((card: SheetCard, newStatus: string) => {
     setCards(prev => prev.map(c =>
@@ -52,16 +57,16 @@ export function useSheets(config: EnvConfig) {
   }, [])
 
   const saveChanges = useCallback(async () => {
-    if (!config.apiUrl || pendingChanges.current.size === 0) return
+    if (!apiUrl || pendingChanges.current.size === 0) return
 
     setSaving(true)
     try {
       const promises = Array.from(pendingChanges.current.values()).map((change) =>
-        fetch(`${config.apiUrl}/updateCell`, {
+        fetch(`${apiUrl}/updateCell`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${config.apiToken}`,
+            'Authorization': `Bearer ${apiToken}`,
           },
           body: JSON.stringify({
             row: change.row,
@@ -69,6 +74,10 @@ export function useSheets(config: EnvConfig) {
             value: change.newStatus,
           }),
         }).then(async (res) => {
+          if (res.status === 401) {
+            onUnauthorized()
+            return
+          }
           if (!res.ok) {
             const body = await res.json().catch(() => null)
             throw new Error(body?.error ?? `HTTP ${res.status}`)
@@ -84,7 +93,7 @@ export function useSheets(config: EnvConfig) {
     } finally {
       setSaving(false)
     }
-  }, [config.apiUrl, config.apiToken])
+  }, [apiUrl, apiToken, onUnauthorized])
 
   const discardChanges = useCallback(() => {
     setCards(originalCards.current)

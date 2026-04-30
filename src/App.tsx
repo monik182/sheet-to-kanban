@@ -1,8 +1,9 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import type { FilterState } from './types'
 import { getConfig, hasRequiredConfig } from './utils/env'
 import { useSheets } from './hooks/useSheets'
 import { InstructionsModal } from './components/InstructionsModal'
+import { LoginScreen } from './components/LoginScreen'
 import { KanbanBoard } from './components/KanbanBoard'
 import { FilterBar } from './components/FilterBar'
 import { Button } from '@/components/ui/pixelact-ui/button'
@@ -14,15 +15,23 @@ const configReady = hasRequiredConfig(config)
 const EMPTY_FILTERS: FilterState = { search: '', priority: '', tag: '', saas: '' }
 
 function App() {
+  const [apiToken, setApiToken] = useState<string | null>(null)
   const [showInstructions, setShowInstructions] = useState(!configReady)
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS)
-  const { cards, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges } = useSheets(config)
+
+  const handleUnauthorized = useCallback(() => setApiToken(null), [])
+
+  const { cards, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges } = useSheets(
+    config.apiUrl,
+    apiToken ?? '',
+    handleUnauthorized
+  )
 
   useEffect(() => {
-    if (configReady) {
+    if (configReady && apiToken) {
       fetchCards()
     }
-  }, [fetchCards])
+  }, [fetchCards, apiToken])
 
   const filteredCards = useMemo(() => {
     return cards.filter(card => {
@@ -36,6 +45,10 @@ function App() {
 
   if (!configReady && showInstructions) {
     return <InstructionsModal dismissable={false} />
+  }
+
+  if (!apiToken) {
+    return <LoginScreen onLogin={setApiToken} />
   }
 
   return (

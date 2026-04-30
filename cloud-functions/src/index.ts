@@ -10,7 +10,7 @@ const SHEET_NAME = process.env.SHEET_NAME ?? "Sheet1";
 const APP_TOKEN = process.env.APP_TOKEN ?? "";
 
 const ALLOWED_ORIGINS = [
-  "https://monik182.github.io",
+  "https://kanban.monicarvajal.com",
   "http://localhost:5173",
   "http://localhost:4173",
 ];
