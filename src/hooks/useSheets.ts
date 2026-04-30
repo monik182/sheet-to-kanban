@@ -95,11 +95,47 @@ export function useSheets(apiUrl: string, apiToken: string, onUnauthorized: () =
     }
   }, [apiUrl, apiToken, onUnauthorized])
 
+  const addCard = useCallback(async (data: {
+    name: string
+    priority?: string
+    status?: string
+    observation?: string
+    tags?: string
+    canBeSaas?: string
+  }) => {
+    if (!apiUrl) return
+
+    try {
+      const res = await fetch(`${apiUrl}/addRow`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiToken}`,
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (res.status === 401) {
+        onUnauthorized()
+        return
+      }
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        throw new Error(body?.error ?? `HTTP ${res.status}`)
+      }
+
+      await fetchCards()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add new item')
+    }
+  }, [apiUrl, apiToken, onUnauthorized, fetchCards])
+
   const discardChanges = useCallback(() => {
     setCards(originalCards.current)
     pendingChanges.current.clear()
     setHasPendingChanges(false)
   }, [])
 
-  return { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges }
+  return { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges, addCard }
 }

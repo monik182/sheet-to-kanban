@@ -15,11 +15,12 @@ interface FilterBarProps {
   onChange: (filters: FilterState) => void
   cards: SheetCard[]
   filteredCount: number
+  onNewItem: () => void
 }
 
 const EMPTY_FILTERS: FilterState = { search: '', priority: '', tag: '', saas: '' }
 
-export function FilterBar({ filters, onChange, cards, filteredCount }: FilterBarProps) {
+export function FilterBar({ filters, onChange, cards, filteredCount, onNewItem }: FilterBarProps) {
   const priorities = useMemo(() => {
     const set = new Set(cards.map(c => c._priority))
     return [...set].sort((a, b) => a - b)
@@ -80,6 +81,14 @@ export function FilterBar({ filters, onChange, cards, filteredCount }: FilterBar
           <SelectItem value="no">SaaS: No</SelectItem>
         </SelectContent>
       </Select>
+
+      <Button
+        onClick={onNewItem}
+        size="sm"
+        className="text-[9px]"
+      >
+        + New
+      </Button>
 
       {hasFilters && (
         <Button

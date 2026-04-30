@@ -8,6 +8,7 @@ import { LoginScreen } from './components/LoginScreen'
 import { KanbanBoard } from './components/KanbanBoard'
 import { FilterBar } from './components/FilterBar'
 import { PixelLoadingBar } from './components/PixelLoadingBar'
+import { NewItemModal } from './components/NewItemModal'
 import { Button } from '@/components/ui/pixelact-ui/button'
 import { Alert, AlertDescription } from '@/components/ui/pixelact-ui/alert'
 
@@ -20,6 +21,7 @@ function App() {
   const [apiToken, setApiToken] = useState<string | null>(loadSession)
   const [showInstructions, setShowInstructions] = useState(!configReady)
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS)
+  const [showNewItem, setShowNewItem] = useState(false)
 
   const handleLogin = useCallback((token: string) => {
     saveSession(token)
@@ -31,7 +33,7 @@ function App() {
     setApiToken(null)
   }, [])
 
-  const { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges } = useSheets(
+  const { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges, addCard } = useSheets(
     config.apiUrl,
     apiToken ?? '',
     handleUnauthorized
@@ -124,6 +126,7 @@ function App() {
           onChange={setFilters}
           cards={cards}
           filteredCount={filteredCards.length}
+          onNewItem={() => setShowNewItem(true)}
         />
       )}
 
@@ -133,6 +136,12 @@ function App() {
           onStatusChange={updateCardStatus}
         />
       </div>
+
+      <NewItemModal
+        open={showNewItem}
+        onClose={() => setShowNewItem(false)}
+        onSave={addCard}
+      />
 
       {showInstructions && configReady && (
         <InstructionsModal
