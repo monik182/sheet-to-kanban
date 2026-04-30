@@ -3,6 +3,8 @@ export const DEFAULT_COLUMNS = ['To Do', 'In Progress', 'Blocked', 'Paused', 'Do
 export const COLUMN_COLORS: Record<string, {
   bg: string
   bgHex: string
+  border: string
+  dot: string
   dragOver: string
   header: string
   headerBorder: string
@@ -10,6 +12,8 @@ export const COLUMN_COLORS: Record<string, {
   'to do': {
     bg: 'bg-[#bae1ff]/20',
     bgHex: '#bae1ff',
+    border: 'border-[#8ac4f0]',
+    dot: 'bg-[#8ac4f0]',
     dragOver: 'bg-[#bae1ff]/40',
     header: 'bg-[#bae1ff]',
     headerBorder: 'border-[#8ac4f0]',
@@ -17,6 +21,8 @@ export const COLUMN_COLORS: Record<string, {
   'in progress': {
     bg: 'bg-[#baffc9]/20',
     bgHex: '#baffc9',
+    border: 'border-[#8be0a0]',
+    dot: 'bg-[#8be0a0]',
     dragOver: 'bg-[#baffc9]/40',
     header: 'bg-[#baffc9]',
     headerBorder: 'border-[#8be0a0]',
@@ -24,6 +30,8 @@ export const COLUMN_COLORS: Record<string, {
   'blocked': {
     bg: 'bg-[#ffb3ba]/20',
     bgHex: '#ffb3ba',
+    border: 'border-[#e8959d]',
+    dot: 'bg-[#e8959d]',
     dragOver: 'bg-[#ffb3ba]/40',
     header: 'bg-[#ffb3ba]',
     headerBorder: 'border-[#e8959d]',
@@ -31,6 +39,8 @@ export const COLUMN_COLORS: Record<string, {
   'paused': {
     bg: 'bg-[#ffffba]/20',
     bgHex: '#ffffba',
+    border: 'border-[#e0e08a]',
+    dot: 'bg-[#e0e08a]',
     dragOver: 'bg-[#ffffba]/40',
     header: 'bg-[#ffffba]',
     headerBorder: 'border-[#e0e08a]',
@@ -38,6 +48,8 @@ export const COLUMN_COLORS: Record<string, {
   'done': {
     bg: 'bg-[#ffdfba]/20',
     bgHex: '#ffdfba',
+    border: 'border-[#e0c08a]',
+    dot: 'bg-[#e0c08a]',
     dragOver: 'bg-[#ffdfba]/40',
     header: 'bg-[#ffdfba]',
     headerBorder: 'border-[#e0c08a]',
@@ -45,6 +57,8 @@ export const COLUMN_COLORS: Record<string, {
   "won't do": {
     bg: 'bg-[#e0ddd8]/20',
     bgHex: '#e0ddd8',
+    border: 'border-[#c0bdb8]',
+    dot: 'bg-[#c0bdb8]',
     dragOver: 'bg-[#e0ddd8]/40',
     header: 'bg-[#e0ddd8]',
     headerBorder: 'border-[#c0bdb8]',
@@ -54,6 +68,8 @@ export const COLUMN_COLORS: Record<string, {
 const FALLBACK_COLOR = {
   bg: 'bg-gray-100',
   bgHex: '#e5e5e5',
+  border: 'border-gray-300',
+  dot: 'bg-gray-300',
   dragOver: 'bg-gray-200',
   header: 'bg-gray-200',
   headerBorder: 'border-gray-300',
