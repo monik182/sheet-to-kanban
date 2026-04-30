@@ -102,6 +102,56 @@ http("getSheet", async (req: Request, res: Response) => {
   }
 });
 
+// --- addRow function ---
+
+http("addRow", async (req: Request, res: Response) => {
+  if (handleCors(req, res)) return;
+  if (!validateAuth(req, res)) return;
+
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
+
+  const { name, priority, status, observation, tags, canBeSaas } = req.body ?? {};
+
+  if (!name || typeof name !== "string") {
+    res.status(400).json({ error: "Missing required field: name" });
+    return;
+  }
+
+  try {
+    const doc = await getDoc();
+    const sheet = doc.sheetsByTitle[SHEET_NAME];
+
+    if (!sheet) {
+      res.status(404).json({ error: `Sheet "${SHEET_NAME}" not found` });
+      return;
+    }
+
+    await sheet.loadHeaderRow();
+    const headers = sheet.headerValues;
+
+    const rowData: Record<string, string> = {};
+    for (const h of headers) {
+      const key = h.toLowerCase().trim();
+      if (key === "name") rowData[h] = name;
+      else if (key === "priority") rowData[h] = String(priority ?? "");
+      else if (key === "status") rowData[h] = status ?? "To Do";
+      else if (key === "observation") rowData[h] = observation ?? "";
+      else if (key === "tags") rowData[h] = tags ?? "";
+      else if (key === "can be saas") rowData[h] = canBeSaas ?? "";
+    }
+
+    const newRow = await sheet.addRow(rowData);
+    res.json({ ok: true, row: newRow.rowNumber });
+  } catch (err) {
+    console.error("addRow error:", err);
+    const message = err instanceof Error ? err.message : "Internal server error";
+    res.status(500).json({ error: message });
+  }
+});
+
 // --- updateCell function ---
 
 http("updateCell", async (req: Request, res: Response) => {
