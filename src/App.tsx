@@ -39,7 +39,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] flex flex-col">
+    <div className="h-screen bg-[var(--background)] flex flex-col overflow-hidden">
       <header className="border-b-4 border-[var(--foreground)] bg-[var(--primary)] px-4 py-3 flex items-center justify-between shrink-0">
         <h1 className="text-sm font-pixel text-[var(--foreground)]">Sheet to Kanban</h1>
         <div className="flex items-center gap-3">

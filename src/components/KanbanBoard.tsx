@@ -46,7 +46,7 @@ export function KanbanBoard({ cards, onStatusChange }: KanbanBoardProps) {
   }
 
   return (
-    <div className="flex gap-4 p-4 overflow-x-auto h-full items-start">
+    <div className="flex! gap-4 p-4 overflow-x-auto h-full items-start justify-between">
       {columns.map(status => (
         <KanbanColumn
           key={status}
