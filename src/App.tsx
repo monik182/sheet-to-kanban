@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import type { FilterState } from './types'
 import { getConfig, hasRequiredConfig } from './utils/env'
+import { saveSession, loadSession, clearSession } from './utils/session'
 import { useSheets } from './hooks/useSheets'
 import { InstructionsModal } from './components/InstructionsModal'
 import { LoginScreen } from './components/LoginScreen'
@@ -15,11 +16,19 @@ const configReady = hasRequiredConfig(config)
 const EMPTY_FILTERS: FilterState = { search: '', priority: '', tag: '', saas: '' }
 
 function App() {
-  const [apiToken, setApiToken] = useState<string | null>(null)
+  const [apiToken, setApiToken] = useState<string | null>(loadSession)
   const [showInstructions, setShowInstructions] = useState(!configReady)
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS)
 
-  const handleUnauthorized = useCallback(() => setApiToken(null), [])
+  const handleLogin = useCallback((token: string) => {
+    saveSession(token)
+    setApiToken(token)
+  }, [])
+
+  const handleUnauthorized = useCallback(() => {
+    clearSession()
+    setApiToken(null)
+  }, [])
 
   const { cards, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges } = useSheets(
     config.apiUrl,
@@ -48,7 +57,7 @@ function App() {
   }
 
   if (!apiToken) {
-    return <LoginScreen onLogin={setApiToken} />
+    return <LoginScreen onLogin={handleLogin} />
   }
 
   return (
@@ -82,6 +91,14 @@ function App() {
             title="Setup instructions"
           >
             ?
+          </Button>
+          <Button
+            onClick={handleUnauthorized}
+            variant="secondary"
+            size="sm"
+            title="Logout"
+          >
+            ⏻
           </Button>
         </div>
       </header>
