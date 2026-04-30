@@ -7,6 +7,7 @@ import { InstructionsModal } from './components/InstructionsModal'
 import { LoginScreen } from './components/LoginScreen'
 import { KanbanBoard } from './components/KanbanBoard'
 import { FilterBar } from './components/FilterBar'
+import { PixelLoadingBar } from './components/PixelLoadingBar'
 import { Button } from '@/components/ui/pixelact-ui/button'
 import { Alert, AlertDescription } from '@/components/ui/pixelact-ui/alert'
 
@@ -30,7 +31,7 @@ function App() {
     setApiToken(null)
   }, [])
 
-  const { cards, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges } = useSheets(
+  const { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges } = useSheets(
     config.apiUrl,
     apiToken ?? '',
     handleUnauthorized
@@ -58,6 +59,10 @@ function App() {
 
   if (!apiToken) {
     return <LoginScreen onLogin={handleLogin} />
+  }
+
+  if (loading && cards.length === 0) {
+    return <PixelLoadingBar />
   }
 
   return (
