@@ -69,3 +69,16 @@ jobs:
             --entry-point=addRow \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --set-env-vars=SHEET_ID=${{ secrets.SHEET_ID }},SHEET_NAME=${{ secrets.SHEET_NAME }},APP_TOKEN=${{ secrets.APP_TOKEN }}
+
+      - name: Deploy updateRow
+        run: |
+          gcloud functions deploy updateRow \
+            --gen2 \
+            --runtime=nodejs22 \
+            --trigger-http \
+            --allow-unauthenticated \
+            --region=europe-west1 \
+            --source=cloud-functions \
+            --entry-point=updateRow \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --set-env-vars=SHEET_ID=${{ secrets.SHEET_ID }},SHEET_NAME=${{ secrets.SHEET_NAME }},APP_TOKEN=${{ secrets.APP_TOKEN }}
