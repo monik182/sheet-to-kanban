@@ -65,7 +65,7 @@ export function KanbanColumn({ status, cards, onDrop, onDragStart, onDragEnd }: 
           {cards.length}
         </span>
       </div>
-      <div className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[120px]">
+      <div className="flex-1 p-2 space-y-4 overflow-y-auto min-h-[120px] max-h-[calc(10*5rem+9*10px)]">
         {cards.map(card => (
           <KanbanCard
             key={card._id}

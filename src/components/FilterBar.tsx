@@ -43,14 +43,14 @@ export function FilterBar({ filters, onChange, cards, filteredCount }: FilterBar
         placeholder="Search ideas..."
         value={filters.search}
         onChange={e => update('search', e.target.value)}
-        className="w-48 text-xs font-body"
+        className="w-100 text-xs font-body"
       />
 
       <Select value={filters.priority || '_all'} onValueChange={v => update('priority', v === '_all' ? '' : v)}>
         <SelectTrigger font="pixel" className="w-[160px] text-[9px]">
           <SelectValue placeholder="All priorities" />
         </SelectTrigger>
-        <SelectContent font="pixel" className="text-[9px]">
+        <SelectContent font="pixel" className="text-[9px] bg-white">
           <SelectItem value="_all">All priorities</SelectItem>
           {priorities.map(p => (
             <SelectItem key={p} value={String(p)}>P{p}</SelectItem>
@@ -62,7 +62,7 @@ export function FilterBar({ filters, onChange, cards, filteredCount }: FilterBar
         <SelectTrigger font="pixel" className="w-[140px] text-[9px]">
           <SelectValue placeholder="All tags" />
         </SelectTrigger>
-        <SelectContent font="pixel" className="text-[9px]">
+        <SelectContent font="pixel" className="text-[9px] bg-white">
           <SelectItem value="_all">All tags</SelectItem>
           {tags.map(t => (
             <SelectItem key={t} value={t}>{t}</SelectItem>
@@ -74,7 +74,7 @@ export function FilterBar({ filters, onChange, cards, filteredCount }: FilterBar
         <SelectTrigger font="pixel" className="w-[140px] text-[9px]">
           <SelectValue placeholder="SaaS: All" />
         </SelectTrigger>
-        <SelectContent font="pixel" className="text-[9px]">
+        <SelectContent font="pixel" className="text-[9px] bg-white">
           <SelectItem value="all">SaaS: All</SelectItem>
           <SelectItem value="yes">SaaS: Yes</SelectItem>
           <SelectItem value="no">SaaS: No</SelectItem>

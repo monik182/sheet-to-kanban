@@ -9,6 +9,7 @@ export function useSheets(config: EnvConfig) {
   const [error, setError] = useState<string | null>(null)
   const pendingChanges = useRef<Map<string, { row: number; newStatus: string }>>(new Map())
   const [hasPendingChanges, setHasPendingChanges] = useState(false)
+  const originalCards = useRef<SheetCard[]>([])
 
   const fetchCards = useCallback(async () => {
     if (!config.googleApiKey || !config.sheetId) return
@@ -28,7 +29,9 @@ export function useSheets(config: EnvConfig) {
       }
 
       const data = await res.json()
-      setCards(parseSheetData(data.values ?? []))
+      const parsed = parseSheetData(data.values ?? [])
+      setCards(parsed)
+      originalCards.current = parsed
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch sheet data')
     } finally {
@@ -52,18 +55,15 @@ export function useSheets(config: EnvConfig) {
 
     setSaving(true)
     try {
-      const promises = Array.from(pendingChanges.current.entries()).map(([_, change]) =>
-        fetch(config.appsScriptUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          body: JSON.stringify({
-            sheetId: config.sheetId,
-            sheetName: config.tabName,
-            range: `C${change.row}`,
-            value: change.newStatus,
-          }),
+      const promises = Array.from(pendingChanges.current.entries()).map(([_, change]) => {
+        const params = new URLSearchParams({
+          sheetId: config.sheetId,
+          sheetName: config.tabName,
+          range: `C${change.row}`,
+          value: change.newStatus,
         })
-      )
+        return fetch(`${config.appsScriptUrl}?${params}`)
+      })
       await Promise.all(promises)
       pendingChanges.current.clear()
       setHasPendingChanges(false)
@@ -75,5 +75,11 @@ export function useSheets(config: EnvConfig) {
     }
   }, [config.appsScriptUrl, config.sheetId, config.tabName])
 
-  return { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, hasPendingChanges }
+  const discardChanges = useCallback(() => {
+    setCards(originalCards.current)
+    pendingChanges.current.clear()
+    setHasPendingChanges(false)
+  }, [])
+
+  return { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges }
 }
