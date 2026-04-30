@@ -1,0 +1,62 @@
+name: Deploy Cloud Functions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cloud-functions/**"
+
+env:
+  VITE_API_URL: ${{ vars.VITE_API_URL }}
+  VITE_API_TOKEN: ${{ secrets.APP_TOKEN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies and build
+        working-directory: cloud-functions
+        run: npm ci && npm run build
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy getSheet
+        run: |
+          gcloud functions deploy getSheet \
+            --gen2 \
+            --runtime=nodejs22 \
+            --trigger-http \
+            --allow-unauthenticated \
+            --region=europe-west1 \
+            --source=cloud-functions \
+            --entry-point=getSheet \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --set-env-vars=SHEET_ID=${{ secrets.SHEET_ID }},SHEET_NAME=${{ secrets.SHEET_NAME }},APP_TOKEN=${{ secrets.APP_TOKEN }}
+
+      - name: Deploy updateCell
+        run: |
+          gcloud functions deploy updateCell \
+            --gen2 \
+            --runtime=nodejs22 \
+            --trigger-http \
+            --allow-unauthenticated \
+            --region=europe-west1 \
+            --source=cloud-functions \
+            --entry-point=updateCell \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --set-env-vars=SHEET_ID=${{ secrets.SHEET_ID }},SHEET_NAME=${{ secrets.SHEET_NAME }},APP_TOKEN=${{ secrets.APP_TOKEN }}
