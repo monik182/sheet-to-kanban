@@ -151,6 +151,71 @@ http("addRow", async (req: Request, res: Response) => {
   }
 });
 
+// --- updateRow function ---
+
+http("updateRow", async (req: Request, res: Response) => {
+  if (handleCors(req, res)) return;
+  if (!validateAuth(req, res)) return;
+
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
+
+  const { row, fields } = req.body ?? {};
+
+  if (typeof row !== "number" || !fields || typeof fields !== "object") {
+    res.status(400).json({
+      error: "Invalid body. Expected: { row: number, fields: Record<string, string> }",
+    });
+    return;
+  }
+
+  if (!fields.name || typeof fields.name !== "string") {
+    res.status(400).json({ error: "Missing required field: name" });
+    return;
+  }
+
+  try {
+    const doc = await getDoc();
+    const sheet = doc.sheetsByTitle[SHEET_NAME];
+
+    if (!sheet) {
+      res.status(404).json({ error: `Sheet "${SHEET_NAME}" not found` });
+      return;
+    }
+
+    await sheet.loadHeaderRow();
+    const headers = sheet.headerValues;
+    const rows = await sheet.getRows();
+    const rowIndex = row - 2;
+
+    if (rowIndex < 0 || rowIndex >= rows.length) {
+      res.status(404).json({ error: `Row ${row} not found` });
+      return;
+    }
+
+    const target = rows[rowIndex];
+
+    for (const h of headers) {
+      const key = h.toLowerCase().trim();
+      if (key === "name") target.set(h, fields.name);
+      else if (key === "priority") target.set(h, String(fields.priority ?? ""));
+      else if (key === "status") target.set(h, fields.status ?? target.get(h));
+      else if (key === "observation") target.set(h, fields.observation ?? "");
+      else if (key === "tags") target.set(h, fields.tags ?? "");
+      else if (key === "can be saas") target.set(h, fields.canBeSaas ?? "");
+    }
+
+    await target.save();
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("updateRow error:", err);
+    const message = err instanceof Error ? err.message : "Internal server error";
+    res.status(500).json({ error: message });
+  }
+});
+
 // --- updateCell function ---
 
 http("updateCell", async (req: Request, res: Response) => {
