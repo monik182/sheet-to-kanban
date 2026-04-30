@@ -13,7 +13,7 @@ export function KanbanBoard({ cards, onStatusChange }: KanbanBoardProps) {
 
   const columns = useMemo(() => {
     const extra = cards
-      .map(c => c.status.toLowerCase())
+      .map(c => c.status)
       .filter(s => !DEFAULT_COLUMNS.includes(s as typeof DEFAULT_COLUMNS[number]))
     const unique = [...new Set(extra)]
     return [...DEFAULT_COLUMNS, ...unique]
@@ -25,7 +25,7 @@ export function KanbanBoard({ cards, onStatusChange }: KanbanBoardProps) {
       grouped[col] = []
     }
     for (const card of cards) {
-      const status = card.status.toLowerCase()
+      const status = card.status
       if (!grouped[status]) {
         grouped[status] = []
       }

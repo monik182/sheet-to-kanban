@@ -19,8 +19,6 @@ export interface FilterState {
 }
 
 export interface EnvConfig {
-  googleApiKey: string
-  sheetId: string
-  tabName: string
-  appsScriptUrl: string
+  apiUrl: string
+  apiToken: string
 }

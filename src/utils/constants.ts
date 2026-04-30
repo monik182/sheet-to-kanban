@@ -1,4 +1,4 @@
-export const DEFAULT_COLUMNS = ['to do', 'in progress', 'blocked', 'paused', 'done', "won't do"] as const
+export const DEFAULT_COLUMNS = ['To Do', 'In Progress', 'Blocked', 'Paused', 'Done', "Won't Do"] as const
 
 export const COLUMN_COLORS: Record<string, {
   bg: string
@@ -95,18 +95,3 @@ export const COLUMN_ICONS: Record<string, string> = {
   "won't do": '\u2212',
 }
 
-export const APPS_SCRIPT_CODE = `function doPost(e) {
-  var data = JSON.parse(e.postData.contents);
-  var ss = SpreadsheetApp.openById(data.sheetId);
-  var sheet = ss.getSheetByName(data.sheetName || "Sheet1");
-  sheet.getRange(data.range).setValue(data.value);
-  return ContentService
-    .createTextOutput(JSON.stringify({ok: true}))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doGet(e) {
-  return ContentService
-    .createTextOutput("OK")
-    .setMimeType(ContentService.MimeType.TEXT);
-}`

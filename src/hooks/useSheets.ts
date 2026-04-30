@@ -12,7 +12,7 @@ export function useSheets(config: EnvConfig) {
   const originalCards = useRef<SheetCard[]>([])
 
   const fetchCards = useCallback(async () => {
-    if (!config.googleApiKey || !config.sheetId) return
+    if (!config.apiUrl || !config.apiToken) return
 
     setLoading(true)
     setError(null)
@@ -20,16 +20,17 @@ export function useSheets(config: EnvConfig) {
     setHasPendingChanges(false)
 
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(config.sheetId)}/values/${encodeURIComponent(config.tabName)}?key=${encodeURIComponent(config.googleApiKey)}`
-      const res = await fetch(url)
+      const res = await fetch(`${config.apiUrl}/getSheet`, {
+        headers: { 'Authorization': `Bearer ${config.apiToken}` },
+      })
 
       if (!res.ok) {
         const body = await res.json().catch(() => null)
-        throw new Error(body?.error?.message ?? `HTTP ${res.status}`)
+        throw new Error(body?.error ?? `HTTP ${res.status}`)
       }
 
       const data = await res.json()
-      const parsed = parseSheetData(data.values ?? [])
+      const parsed = parseSheetData(data.rows ?? [])
       setCards(parsed)
       originalCards.current = parsed
     } catch (err) {
@@ -37,7 +38,7 @@ export function useSheets(config: EnvConfig) {
     } finally {
       setLoading(false)
     }
-  }, [config.googleApiKey, config.sheetId, config.tabName])
+  }, [config.apiUrl, config.apiToken])
 
   const updateCardStatus = useCallback((card: SheetCard, newStatus: string) => {
     setCards(prev => prev.map(c =>
@@ -51,19 +52,29 @@ export function useSheets(config: EnvConfig) {
   }, [])
 
   const saveChanges = useCallback(async () => {
-    if (!config.appsScriptUrl || pendingChanges.current.size === 0) return
+    if (!config.apiUrl || pendingChanges.current.size === 0) return
 
     setSaving(true)
     try {
-      const promises = Array.from(pendingChanges.current.entries()).map(([_, change]) => {
-        const params = new URLSearchParams({
-          sheetId: config.sheetId,
-          sheetName: config.tabName,
-          range: `C${change.row}`,
-          value: change.newStatus,
+      const promises = Array.from(pendingChanges.current.values()).map((change) =>
+        fetch(`${config.apiUrl}/updateCell`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${config.apiToken}`,
+          },
+          body: JSON.stringify({
+            row: change.row,
+            column: 'Status',
+            value: change.newStatus,
+          }),
+        }).then(async (res) => {
+          if (!res.ok) {
+            const body = await res.json().catch(() => null)
+            throw new Error(body?.error ?? `HTTP ${res.status}`)
+          }
         })
-        return fetch(`${config.appsScriptUrl}?${params}`)
-      })
+      )
       await Promise.all(promises)
       pendingChanges.current.clear()
       setHasPendingChanges(false)
@@ -73,7 +84,7 @@ export function useSheets(config: EnvConfig) {
     } finally {
       setSaving(false)
     }
-  }, [config.appsScriptUrl, config.sheetId, config.tabName])
+  }, [config.apiUrl, config.apiToken])
 
   const discardChanges = useCallback(() => {
     setCards(originalCards.current)
