@@ -6,10 +6,6 @@ on:
     paths:
       - "cloud-functions/**"
 
-env:
-  VITE_API_URL: ${{ vars.VITE_API_URL }}
-  VITE_API_TOKEN: ${{ secrets.APP_TOKEN }}
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
