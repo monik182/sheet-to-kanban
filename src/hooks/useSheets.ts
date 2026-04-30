@@ -1,17 +1,22 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import type { SheetCard, EnvConfig } from '../types'
 import { parseSheetData } from '../utils/parseSheet'
 
 export function useSheets(config: EnvConfig) {
   const [cards, setCards] = useState<SheetCard[]>([])
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const pendingChanges = useRef<Map<string, { row: number; newStatus: string }>>(new Map())
+  const [hasPendingChanges, setHasPendingChanges] = useState(false)
 
   const fetchCards = useCallback(async () => {
     if (!config.googleApiKey || !config.sheetId) return
 
     setLoading(true)
     setError(null)
+    pendingChanges.current.clear()
+    setHasPendingChanges(false)
 
     try {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(config.sheetId)}/values/${encodeURIComponent(config.tabName)}?key=${encodeURIComponent(config.googleApiKey)}`
@@ -38,21 +43,37 @@ export function useSheets(config: EnvConfig) {
         : c
     ))
 
-    if (config.appsScriptUrl) {
-      fetch(config.appsScriptUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({
-          sheetId: config.sheetId,
-          sheetName: config.tabName,
-          range: `C${card._row}`,
-          value: newStatus,
-        }),
-      }).catch(err => {
-        console.warn('Failed to write status to sheet:', err)
-      })
+    pendingChanges.current.set(card._id, { row: card._row, newStatus })
+    setHasPendingChanges(true)
+  }, [])
+
+  const saveChanges = useCallback(async () => {
+    if (!config.appsScriptUrl || pendingChanges.current.size === 0) return
+
+    setSaving(true)
+    try {
+      const promises = Array.from(pendingChanges.current.entries()).map(([_, change]) =>
+        fetch(config.appsScriptUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify({
+            sheetId: config.sheetId,
+            sheetName: config.tabName,
+            range: `C${change.row}`,
+            value: change.newStatus,
+          }),
+        })
+      )
+      await Promise.all(promises)
+      pendingChanges.current.clear()
+      setHasPendingChanges(false)
+    } catch (err) {
+      console.warn('Failed to save changes:', err)
+      setError('Failed to save some changes to the sheet')
+    } finally {
+      setSaving(false)
     }
   }, [config.appsScriptUrl, config.sheetId, config.tabName])
 
-  return { cards, loading, error, fetchCards, updateCardStatus }
+  return { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, hasPendingChanges }
 }

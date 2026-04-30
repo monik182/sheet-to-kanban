@@ -35,7 +35,7 @@ export function parseSheetData(rows: string[][]): SheetCard[] {
     cards.push({
       priority: priorityRaw,
       name: get('name'),
-      status: get('status').toLowerCase().trim() || 'backlog',
+      status: get('status').toLowerCase().trim() || 'to do',
       observation: get('observation'),
       tags: tagsRaw,
       canBeSaas: get('canBeSaas'),
