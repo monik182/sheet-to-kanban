@@ -34,7 +34,7 @@ function App() {
     setApiToken(null)
   }, [])
 
-  const { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges, addCard, editCard } = useSheets(
+  const { cards, loading, error, fetchCards, updateCardStatus, addCard, editCard } = useSheets(
     config.apiUrl,
     apiToken ?? '',
     handleUnauthorized
@@ -73,25 +73,6 @@ function App() {
       <header className="border-b-4 border-[var(--foreground)] bg-[var(--primary)] px-4 py-3 flex items-center justify-between shrink-0">
         <h1 className="text-sm font-pixel text-[var(--foreground)]">Sheet to Kanban</h1>
         <div className="flex items-center gap-3">
-          {hasPendingChanges && (
-            <>
-              <Button
-                onClick={discardChanges}
-                disabled={saving}
-                variant="secondary"
-                size="sm"
-              >
-                Undo Changes
-              </Button>
-              <Button
-                onClick={saveChanges}
-                disabled={saving}
-                size="sm"
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </>
-          )}
           <Button
             onClick={() => setShowInstructions(true)}
             variant="secondary"
