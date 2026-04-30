@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import type { FilterState } from './types'
+import type { FilterState, SheetCard } from './types'
 import { getConfig, hasRequiredConfig } from './utils/env'
 import { saveSession, loadSession, clearSession } from './utils/session'
 import { useSheets } from './hooks/useSheets'
@@ -22,6 +22,7 @@ function App() {
   const [showInstructions, setShowInstructions] = useState(!configReady)
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS)
   const [showNewItem, setShowNewItem] = useState(false)
+  const [editingCard, setEditingCard] = useState<SheetCard | null>(null)
 
   const handleLogin = useCallback((token: string) => {
     saveSession(token)
@@ -33,7 +34,7 @@ function App() {
     setApiToken(null)
   }, [])
 
-  const { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges, addCard } = useSheets(
+  const { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges, addCard, editCard } = useSheets(
     config.apiUrl,
     apiToken ?? '',
     handleUnauthorized
@@ -134,13 +135,18 @@ function App() {
         <KanbanBoard
           cards={filteredCards}
           onStatusChange={updateCardStatus}
+          onEdit={(card) => setEditingCard(card)}
         />
       </div>
 
       <NewItemModal
-        open={showNewItem}
-        onClose={() => setShowNewItem(false)}
-        onSave={addCard}
+        open={showNewItem || !!editingCard}
+        onClose={() => { setShowNewItem(false); setEditingCard(null) }}
+        onSave={editingCard
+          ? (data) => editCard(editingCard._row, data)
+          : addCard
+        }
+        editCard={editingCard ?? undefined}
       />
 
       {showInstructions && configReady && (

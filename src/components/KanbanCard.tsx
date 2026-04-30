@@ -7,9 +7,10 @@ interface KanbanCardProps {
   card: SheetCard
   onDragStart: (cardId: string) => void
   onDragEnd: () => void
+  onEdit: (card: SheetCard) => void
 }
 
-export function KanbanCard({ card, onDragStart, onDragEnd }: KanbanCardProps) {
+export function KanbanCard({ card, onDragStart, onDragEnd, onEdit }: KanbanCardProps) {
   return (
     <div
       draggable
@@ -19,8 +20,21 @@ export function KanbanCard({ card, onDragStart, onDragEnd }: KanbanCardProps) {
         onDragStart(card._id)
       }}
       onDragEnd={onDragEnd}
-      className="cursor-grab active:cursor-grabbing hover:-translate-y-0.5 transition-all duration-150 active:opacity-60"
+      className="group cursor-grab active:cursor-grabbing hover:-translate-y-0.5 transition-all duration-150 active:opacity-60 relative"
     >
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          onEdit(card)
+        }}
+        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1 bg-white/80 hover:bg-gray-100 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+        title="Edit item"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+          <path d="m15 5 4 4"/>
+        </svg>
+      </button>
       <Card font="normal" className="bg-white shadow-[4px_4px_0_rgba(0,0,0,0.1)]">
         <CardContent className="p-3">
           <div className="flex items-start justify-between gap-2">

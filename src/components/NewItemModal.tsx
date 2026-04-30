@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DEFAULT_COLUMNS } from '../utils/constants'
 import {
   Dialog,
@@ -18,20 +18,30 @@ import {
   SelectValue,
 } from '@/components/ui/pixelact-ui/select'
 
+interface ItemData {
+  name: string
+  priority?: string
+  status?: string
+  observation?: string
+  tags?: string
+  canBeSaas?: string
+}
+
 interface NewItemModalProps {
   open: boolean
   onClose: () => void
-  onSave: (data: {
+  onSave: (data: ItemData) => Promise<void>
+  editCard?: {
     name: string
-    priority?: string
-    status?: string
-    observation?: string
-    tags?: string
-    canBeSaas?: string
-  }) => Promise<void>
+    priority: string
+    status: string
+    observation: string
+    tags: string
+    canBeSaas: string
+  }
 }
 
-export function NewItemModal({ open, onClose, onSave }: NewItemModalProps) {
+export function NewItemModal({ open, onClose, onSave, editCard }: NewItemModalProps) {
   const [name, setName] = useState('')
   const [priority, setPriority] = useState('')
   const [status, setStatus] = useState('To Do')
@@ -40,6 +50,17 @@ export function NewItemModal({ open, onClose, onSave }: NewItemModalProps) {
   const [tagInput, setTagInput] = useState('')
   const [canBeSaas, setCanBeSaas] = useState('')
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (editCard && open) {
+      setName(editCard.name)
+      setPriority(editCard.priority)
+      setStatus(editCard.status || 'To Do')
+      setObservation(editCard.observation)
+      setTags(editCard.tags ? editCard.tags.split(',').map(t => t.trim()).filter(Boolean) : [])
+      setCanBeSaas(editCard.canBeSaas)
+    }
+  }, [editCard, open])
 
   const reset = () => {
     setName('')
@@ -101,7 +122,7 @@ export function NewItemModal({ open, onClose, onSave }: NewItemModalProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md bg-white">
         <DialogHeader>
-          <DialogTitle>New Item</DialogTitle>
+          <DialogTitle>{editCard ? 'Edit Item' : 'New Item'}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-3 py-2">

@@ -131,11 +131,47 @@ export function useSheets(apiUrl: string, apiToken: string, onUnauthorized: () =
     }
   }, [apiUrl, apiToken, onUnauthorized, fetchCards])
 
+  const editCard = useCallback(async (row: number, fields: {
+    name: string
+    priority?: string
+    status?: string
+    observation?: string
+    tags?: string
+    canBeSaas?: string
+  }) => {
+    if (!apiUrl) return
+
+    try {
+      const res = await fetch(`${apiUrl}/updateRow`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiToken}`,
+        },
+        body: JSON.stringify({ row, fields }),
+      })
+
+      if (res.status === 401) {
+        onUnauthorized()
+        return
+      }
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        throw new Error(body?.error ?? `HTTP ${res.status}`)
+      }
+
+      await fetchCards()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update item')
+    }
+  }, [apiUrl, apiToken, onUnauthorized, fetchCards])
+
   const discardChanges = useCallback(() => {
     setCards(originalCards.current)
     pendingChanges.current.clear()
     setHasPendingChanges(false)
   }, [])
 
-  return { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges, addCard }
+  return { cards, loading, saving, error, fetchCards, updateCardStatus, saveChanges, discardChanges, hasPendingChanges, addCard, editCard }
 }

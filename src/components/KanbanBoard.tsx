@@ -6,9 +6,10 @@ import { KanbanColumn } from './KanbanColumn'
 interface KanbanBoardProps {
   cards: SheetCard[]
   onStatusChange: (card: SheetCard, newStatus: string) => void
+  onEdit: (card: SheetCard) => void
 }
 
-export function KanbanBoard({ cards, onStatusChange }: KanbanBoardProps) {
+export function KanbanBoard({ cards, onStatusChange, onEdit }: KanbanBoardProps) {
   const [_draggedCardId, setDraggedCardId] = useState<string | null>(null)
 
   const columns = useMemo(() => {
@@ -55,6 +56,7 @@ export function KanbanBoard({ cards, onStatusChange }: KanbanBoardProps) {
           onDrop={handleDrop}
           onDragStart={setDraggedCardId}
           onDragEnd={() => setDraggedCardId(null)}
+          onEdit={onEdit}
         />
       ))}
     </div>
