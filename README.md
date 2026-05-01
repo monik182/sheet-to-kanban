@@ -9,8 +9,7 @@ A pixel-art themed Kanban board that uses Google Sheets as its backend, with an 
 
 ## Demo
 
-<!-- Replace with a GIF or video link showcasing drag-and-drop, filtering, and AI chat -->
-> **Video placeholder** — Add a screen recording or GIF here showing the app in action.
+![Demo](screenshots/demo.gif)
 
 ---
 
