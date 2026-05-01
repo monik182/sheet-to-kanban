@@ -21,3 +21,11 @@ export interface FilterState {
 export interface EnvConfig {
   apiUrl: string
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+  isError?: boolean
+}
+
+export type ClaudeModel = 'claude-sonnet-4-20250514' | 'claude-opus-4-20250514'

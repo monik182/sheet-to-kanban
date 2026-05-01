@@ -10,9 +10,10 @@ interface KanbanColumnProps {
   onDragStart: (cardId: string) => void
   onDragEnd: () => void
   onEdit: (card: SheetCard) => void
+  onBuildWithAI: (card: SheetCard) => void
 }
 
-export function KanbanColumn({ status, cards, onDrop, onDragStart, onDragEnd, onEdit }: KanbanColumnProps) {
+export function KanbanColumn({ status, cards, onDrop, onDragStart, onDragEnd, onEdit, onBuildWithAI }: KanbanColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
   const color = getColumnColor(status)
@@ -74,6 +75,7 @@ export function KanbanColumn({ status, cards, onDrop, onDragStart, onDragEnd, on
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
             onEdit={onEdit}
+            onBuildWithAI={onBuildWithAI}
           />
         ))}
       </div>

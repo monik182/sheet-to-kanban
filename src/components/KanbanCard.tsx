@@ -9,9 +9,10 @@ interface KanbanCardProps {
   onDragStart: (cardId: string) => void
   onDragEnd: () => void
   onEdit: (card: SheetCard) => void
+  onBuildWithAI: (card: SheetCard) => void
 }
 
-export function KanbanCard({ card, onDragStart, onDragEnd, onEdit }: KanbanCardProps) {
+export function KanbanCard({ card, onDragStart, onDragEnd, onEdit, onBuildWithAI }: KanbanCardProps) {
   const [copied, setCopied] = useState(false)
 
   return (
@@ -25,6 +26,18 @@ export function KanbanCard({ card, onDragStart, onDragEnd, onEdit }: KanbanCardP
       onDragEnd={onDragEnd}
       className="group cursor-grab active:cursor-grabbing hover:-translate-y-0.5 transition-all duration-150 active:opacity-60 relative"
     >
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          onBuildWithAI(card)
+        }}
+        className="absolute top-2 right-14 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1 bg-white/80 hover:bg-gray-100 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+        title="Build with AI"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+      </button>
       <div className="absolute top-2 right-8 z-10">
         <button
           onClick={(e) => {

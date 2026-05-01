@@ -4,16 +4,17 @@ import { Input } from '@/components/ui/pixelact-ui/input'
 import { Label } from '@/components/ui/pixelact-ui/label'
 
 interface LoginScreenProps {
-  onLogin: (token: string) => void
+  onLogin: (token: string, claudeApiKey: string) => void
 }
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [token, setToken] = useState('')
+  const [claudeApiKey, setClaudeApiKey] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (token.trim()) {
-      onLogin(token.trim())
+    if (token.trim() && claudeApiKey.trim()) {
+      onLogin(token.trim(), claudeApiKey.trim())
     }
   }
 
@@ -36,7 +37,18 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               autoFocus
             />
           </div>
-          <Button type="submit" className="w-full" disabled={!token.trim()}>
+          <div>
+            <Label htmlFor="claude-api-key">Claude API Key</Label>
+            <Input
+              id="claude-api-key"
+              type="password"
+              value={claudeApiKey}
+              onChange={(e) => setClaudeApiKey(e.target.value)}
+              placeholder="Enter your Claude API Key"
+              className="w-full"
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={!token.trim() || !claudeApiKey.trim()}>
             Login
           </Button>
         </form>
