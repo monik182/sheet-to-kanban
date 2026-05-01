@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { SheetCard, FilterState } from '../types'
 import { Input } from '@/components/ui/pixelact-ui/input'
 import { Button } from '@/components/ui/pixelact-ui/button'
@@ -21,6 +21,8 @@ interface FilterBarProps {
 const EMPTY_FILTERS: FilterState = { search: '', priority: '', tag: '', saas: '' }
 
 export function FilterBar({ filters, onChange, cards, filteredCount, onNewItem }: FilterBarProps) {
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
   const priorities = useMemo(() => {
     const set = new Set(cards.map(c => c._priority))
     return [...set].sort((a, b) => a - b)
@@ -37,18 +39,10 @@ export function FilterBar({ filters, onChange, cards, filteredCount, onNewItem }
     onChange({ ...filters, [key]: value })
   }
 
-  return (
-    <div className="px-4 py-2.5 border-b-4 border-[var(--foreground)] bg-white flex items-center gap-3 flex-wrap">
-      <Input
-        type="text"
-        placeholder="Search ideas..."
-        value={filters.search}
-        onChange={e => update('search', e.target.value)}
-        className="w-100 text-xs font-body"
-      />
-
+  const filterControls = (
+    <>
       <Select value={filters.priority || '_all'} onValueChange={v => update('priority', v === '_all' ? '' : v)}>
-        <SelectTrigger font="pixel" className="w-[160px] text-[9px]">
+        <SelectTrigger font="pixel" className="w-full md:w-[160px] text-[9px]">
           <SelectValue placeholder="All priorities" />
         </SelectTrigger>
         <SelectContent font="pixel" className="text-[9px] bg-white">
@@ -60,7 +54,7 @@ export function FilterBar({ filters, onChange, cards, filteredCount, onNewItem }
       </Select>
 
       <Select value={filters.tag || '_all'} onValueChange={v => update('tag', v === '_all' ? '' : v)}>
-        <SelectTrigger font="pixel" className="w-[140px] text-[9px]">
+        <SelectTrigger font="pixel" className="w-full md:w-[140px] text-[9px]">
           <SelectValue placeholder="All tags" />
         </SelectTrigger>
         <SelectContent font="pixel" className="text-[9px] bg-white">
@@ -72,7 +66,7 @@ export function FilterBar({ filters, onChange, cards, filteredCount, onNewItem }
       </Select>
 
       <Select value={filters.saas || 'all'} onValueChange={v => update('saas', v)}>
-        <SelectTrigger font="pixel" className="w-[140px] text-[9px]">
+        <SelectTrigger font="pixel" className="w-full md:w-[140px] text-[9px]">
           <SelectValue placeholder="SaaS: All" />
         </SelectTrigger>
         <SelectContent font="pixel" className="text-[9px] bg-white">
@@ -81,14 +75,6 @@ export function FilterBar({ filters, onChange, cards, filteredCount, onNewItem }
           <SelectItem value="no">SaaS: No</SelectItem>
         </SelectContent>
       </Select>
-
-      <Button
-        onClick={onNewItem}
-        size="sm"
-        className="text-[9px]"
-      >
-        + New
-      </Button>
 
       {hasFilters && (
         <Button
@@ -100,10 +86,61 @@ export function FilterBar({ filters, onChange, cards, filteredCount, onNewItem }
           Clear
         </Button>
       )}
+    </>
+  )
 
-      <span className="ml-auto text-[9px] font-pixel text-[var(--muted-foreground)]">
-        {filteredCount} of {cards.length} ideas{hasFilters ? ' (filtered)' : ''}
-      </span>
+  return (
+    <div className="px-4 py-2.5 border-b-4 border-[var(--foreground)] bg-white shrink-0">
+      {/* Top row: search + actions */}
+      <div className="flex items-center gap-2 md:gap-3">
+        <Input
+          type="text"
+          placeholder="Search ideas..."
+          value={filters.search}
+          onChange={e => update('search', e.target.value)}
+          className="flex-1 md:flex-none md:w-100 text-xs font-body"
+        />
+
+        {/* Mobile: filter toggle */}
+        <Button
+          onClick={() => setFiltersOpen(!filtersOpen)}
+          variant="secondary"
+          size="sm"
+          className="md:hidden text-[9px]"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          {hasFilters && <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />}
+        </Button>
+
+        <Button
+          onClick={onNewItem}
+          size="sm"
+          className="text-[9px]"
+        >
+          + New
+        </Button>
+
+        {/* Desktop: inline filters */}
+        <div className="hidden md:flex items-center gap-3">
+          {filterControls}
+        </div>
+
+        <span className="hidden md:inline ml-auto text-[9px] font-pixel text-[var(--muted-foreground)]">
+          {filteredCount} of {cards.length} ideas{hasFilters ? ' (filtered)' : ''}
+        </span>
+      </div>
+
+      {/* Mobile: expandable filter section */}
+      {filtersOpen && (
+        <div className="md:hidden mt-2 flex flex-col gap-2 pt-2 border-t border-gray-200">
+          {filterControls}
+          <span className="text-[9px] font-pixel text-[var(--muted-foreground)]">
+            {filteredCount} of {cards.length} ideas{hasFilters ? ' (filtered)' : ''}
+          </span>
+        </div>
+      )}
     </div>
   )
 }
